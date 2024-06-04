@@ -1,0 +1,3 @@
+from typing import Literal
+
+def antiseptic(files: list[str], src: str) -> Literal[0, 1]: ...

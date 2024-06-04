@@ -1,0 +1,29 @@
+{
+    "python.envFile": "~/.rye/shims/python",
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+        },
+        "editor.rulers": [100],
+    },
+    "[rust]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.rulers": [100],
+        "editor.inlayHints.enabled": "offUnlessPressed",
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.venv": true,
+        "**/.mypy_cache": true,
+        "**/.ruff_cache": true,
+        "**/__pycache__": true,
+    }
+}

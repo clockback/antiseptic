@@ -1,0 +1,17 @@
+[package]
+name = "antiseptic"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "antiseptic"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.19.0"
+colored = "2.1.0"
+toml = "0.8.14"
+walkdir = "2.5.0"
+globset = "0.4.14"
+utf8-chars = "3.0.3"
