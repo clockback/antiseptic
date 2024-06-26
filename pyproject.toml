@@ -1,6 +1,6 @@
 [project]
 name = "antiseptic"
-version = "0.1.0"
+version = "0.1.0.post1"
 description = "CI spell-checking tool"
 dependencies = []
 readme = "README.md"
@@ -13,6 +13,7 @@ antiseptic = "antiseptic:main"
 [project.urls]
 Homepage = "https://github.com/clockback/antiseptic"
 Issues = "https://github.com/clockback/antiseptic/issues"
+Changelog = "https://github.com/clockback/antiseptic/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["maturin>=1.2,<2.0"]
