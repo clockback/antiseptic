@@ -10,6 +10,12 @@ use utf8_chars::BufReadCharsExt;
 
 use crate::errors::all_errors::AntisepticError;
 
+struct ReadPosition {
+    file: PathBuf,
+    line_no: u64,
+    char_no: u64,
+}
+
 /// Examines the dictionary and finds all characters
 fn read_word(
     bufreader: &mut io::BufReader<File>,
@@ -83,10 +89,24 @@ pub fn get_word_set(src: &Path) -> Result<HashSet<String>, AntisepticError> {
     Ok(iter_lines.collect())
 }
 
-fn word_is_incorrect(word: &String, words_allowed: &HashSet<String>) -> bool {
+fn word_is_incorrect(
+    read_position: &ReadPosition,
+    word: &String,
+    words_allowed: &HashSet<String>,
+) -> bool {
     let lower_word = word.to_lowercase();
     if word.len() > 3 && !words_allowed.contains(&lower_word) {
-        println!("{}{}", "Flagged word: ".red(), word.red());
+        println!(
+            "{}{}{}{}{}{} {} spelling mistake `{}`",
+            read_position.file.to_string_lossy().bold(),
+            ":".cyan(),
+            read_position.line_no,
+            ":".cyan(),
+            read_position.char_no,
+            ":".cyan(),
+            "AS001".red().bold(),
+            word
+        );
         return true;
     }
     return false;
@@ -94,7 +114,11 @@ fn word_is_incorrect(word: &String, words_allowed: &HashSet<String>) -> bool {
 
 /// A token may consist of multiple words. For example, the token ABCMethod contains the words
 /// "ABC" and "Method".
-fn process_token(token: &String, words_allowed: &HashSet<String>) -> bool {
+fn process_token(
+    read_position: &ReadPosition,
+    token: &String,
+    words_allowed: &HashSet<String>,
+) -> bool {
     let mut word = String::new();
     let mut uppercase_triggers_new_word = false;
     let mut is_acronym = false;
@@ -110,7 +134,8 @@ fn process_token(token: &String, words_allowed: &HashSet<String>) -> bool {
 
             // Single-character words are not spell-checked.
             if first.is_lowercase() && is_uppercase {
-                found_mistake = found_mistake | word_is_incorrect(word.borrow(), words_allowed);
+                found_mistake =
+                    found_mistake | word_is_incorrect(read_position, word.borrow(), words_allowed);
                 word.remove(0);
             } else if is_uppercase {
                 is_acronym = true;
@@ -119,12 +144,14 @@ fn process_token(token: &String, words_allowed: &HashSet<String>) -> bool {
             }
         } else if length_so_far > 2 {
             if uppercase_triggers_new_word && is_uppercase {
-                found_mistake = found_mistake | word_is_incorrect(word.borrow(), words_allowed);
+                found_mistake =
+                    found_mistake | word_is_incorrect(read_position, word.borrow(), words_allowed);
                 word.clear();
                 uppercase_triggers_new_word = false;
             } else if is_acronym && !is_uppercase {
                 let previous_character = word.pop().unwrap();
-                found_mistake = found_mistake | word_is_incorrect(word.borrow(), words_allowed);
+                found_mistake =
+                    found_mistake | word_is_incorrect(read_position, word.borrow(), words_allowed);
                 word.clear();
                 word.push(previous_character);
                 is_acronym = false;
@@ -134,7 +161,8 @@ fn process_token(token: &String, words_allowed: &HashSet<String>) -> bool {
     }
 
     if !word.is_empty() {
-        found_mistake = found_mistake | word_is_incorrect(word.borrow(), words_allowed);
+        found_mistake =
+            found_mistake | word_is_incorrect(read_position, word.borrow(), words_allowed);
     }
     return found_mistake;
 }
@@ -161,7 +189,12 @@ pub fn read_file(
     let char_iter = bufreader.chars();
     let mut token = String::new();
     let mut token_invalid = false;
+
+    let mut line_no = 1;
+    let mut char_no: u64 = 0;
+
     for character_option in char_iter {
+        char_no += 1;
         let character = match character_option {
             Ok(result) => result,
             Err(_err) => {
@@ -176,8 +209,18 @@ pub fn read_file(
         if characters_allowed.contains(&character) {
             token.push(character);
         } else if !token.is_empty() {
-            token_invalid = token_invalid | process_token(token.borrow(), words_allowed);
+            let read_position = ReadPosition {
+                file: file.clone(),
+                line_no,
+                char_no: char_no - (token.len() as u64),
+            };
+            token_invalid =
+                token_invalid | process_token(&read_position, token.borrow(), words_allowed);
             token.clear();
+        }
+        if character == '\n' {
+            line_no += 1;
+            char_no = 0;
         }
     }
 
