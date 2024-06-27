@@ -145,7 +145,7 @@ fn antiseptic_main(
 
     for file in &all_files {
         match spellcheck::read_file(file, &characters_allowed, &words_allowed) {
-            Ok(_result) => println!("Checked {}.", file.display()),
+            Ok(_result) => (),
             Err(e) if e == AntisepticError::CheckedFileIsNotUTF8 => println!(
                 "{}{}{}",
                 "WARNING: ".yellow(),
@@ -153,7 +153,6 @@ fn antiseptic_main(
                 " did not contain valid UTF-8.".yellow()
             ),
             Err(e) if e == AntisepticError::SpellingMistakeFound => {
-                println!("Checked {}.", file.display());
                 found_mistake = true;
             }
             Err(e) => return Err(e),
