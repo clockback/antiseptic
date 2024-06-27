@@ -134,12 +134,8 @@ fn antiseptic_main(
     let mut all_files: BTreeSet<PathBuf> = BTreeSet::new();
     find_files::collect_all_files(files, all_files.borrow_mut(), &config)?;
 
-    println!("Found {} files.", all_files.len());
-
     let words_allowed: HashSet<String> = spellcheck::get_word_set(src_path)?;
-
     let characters_allowed: HashSet<char> = spellcheck::get_word_characters(src_path)?;
-    println!("Characters allowed: {:?}", characters_allowed);
 
     let mut found_mistake = false;
 
