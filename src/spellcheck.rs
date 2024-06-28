@@ -230,3 +230,69 @@ pub fn read_file(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn word_is_incorrect_false() {
+        let pathbuf = PathBuf::new();
+        let read_position = ReadPosition {
+            file: pathbuf,
+            line_no: 1,
+            char_no: 1,
+        };
+        let word = "antiseptic".to_owned();
+        let mut words_allowed: HashSet<String> = HashSet::new();
+        words_allowed.insert("antiseptic".to_owned());
+        let incorrect = word_is_incorrect(&read_position, &word, &words_allowed);
+        assert!(!incorrect);
+    }
+
+    #[test]
+    fn word_is_incorrect_true() {
+        let pathbuf = PathBuf::new();
+        let read_position = ReadPosition {
+            file: pathbuf,
+            line_no: 1,
+            char_no: 1,
+        };
+        let word = "wrong".to_owned();
+        let mut words_allowed: HashSet<String> = HashSet::new();
+        words_allowed.insert("right".to_owned());
+        let incorrect = word_is_incorrect(&read_position, &word, &words_allowed);
+        assert!(incorrect);
+    }
+
+    #[test]
+    fn process_token_false() {
+        let pathbuf = PathBuf::new();
+        let read_position = ReadPosition {
+            file: pathbuf,
+            line_no: 1,
+            char_no: 1,
+        };
+        let token = "leftRight".to_owned();
+        let mut words_allowed: HashSet<String> = HashSet::new();
+        words_allowed.insert("left".to_owned());
+        words_allowed.insert("right".to_owned());
+        let incorrect = process_token(&read_position, &token, &words_allowed);
+        assert!(!incorrect);
+    }
+
+    #[test]
+    fn process_token_true() {
+        let pathbuf = PathBuf::new();
+        let read_position = ReadPosition {
+            file: pathbuf,
+            line_no: 1,
+            char_no: 1,
+        };
+        let token = "leftRight".to_owned();
+        let mut words_allowed: HashSet<String> = HashSet::new();
+        words_allowed.insert("right".to_owned());
+        let incorrect = process_token(&read_position, &token, &words_allowed);
+        assert!(incorrect);
+    }
+}
