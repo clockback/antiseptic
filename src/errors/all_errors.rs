@@ -1,3 +1,4 @@
+/// All errors that can be passed between Antiseptic functions.
 #[derive(Debug, PartialEq)]
 pub enum AntisepticError {
     SpellingMistakeFound = 1,

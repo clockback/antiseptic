@@ -19,6 +19,9 @@ use pyo3::types::PyList;
 use pyo3::types::PyString;
 use toml::Table;
 
+/// Parses the provided file as a TOML table.
+///
+/// * `path_buffer` - The path to the file to be parsed.
 fn parse_file_as_toml(path_buffer: PathBuf) -> Result<Table, AntisepticError> {
     let path_str_result = path_buffer.to_str();
     if path_str_result.is_none() {
@@ -42,6 +45,8 @@ fn parse_file_as_toml(path_buffer: PathBuf) -> Result<Table, AntisepticError> {
 }
 
 /// Returns true if a pyproject.toml file contains antiseptic configuration, otherwise false.
+///
+/// * `path_buffer` - The file to be checked for the presence of antiseptic configuration.
 fn pyproject_get_config(path_buffer: PathBuf) -> Result<Table, AntisepticError> {
     let contents = fs::read_to_string(path_buffer).expect("pyproject.toml not readable.");
     let table_option = contents.parse::<Table>();
@@ -69,23 +74,31 @@ fn pyproject_get_config(path_buffer: PathBuf) -> Result<Table, AntisepticError> 
 }
 
 /// Attempts to find the appropriate configuration file.
+///
+/// * `path` - The path to the current working directory.
 fn find_config_in_dir(path: &Path) -> Result<Table, AntisepticError> {
+    // Progressively iterates through the ancestors of the current working directory until the
+    // configuration file is found, starting from the current working directory itself.
     let mut ancestors: Ancestors = path.ancestors();
     let mut ancestor_option = ancestors.next();
     while ancestor_option.is_some() {
         let ancestor = ancestor_option.unwrap();
         ancestor_option = ancestors.next();
 
+        // `.antiseptic.toml` takes precedence over `antiseptic.toml` and `pyproject.toml`.
         let hidden_antiseptic_config = ancestor.join(".antiseptic.toml");
         if hidden_antiseptic_config.exists() {
             return parse_file_as_toml(hidden_antiseptic_config);
         }
 
+        // `antiseptic.toml` takes precedence over `pyproject.toml`.
         let antiseptic_config = ancestor.join("antiseptic.toml");
         if antiseptic_config.exists() {
             return parse_file_as_toml(antiseptic_config);
         }
 
+        // `pyproject.toml` can potentially be a valid Antiseptic configuration file if it contains
+        // the appropriate TOML contents.
         let pyproject = ancestor.join("pyproject.toml");
         if !pyproject.exists() {
             continue;
@@ -99,7 +112,9 @@ fn find_config_in_dir(path: &Path) -> Result<Table, AntisepticError> {
     return Err(AntisepticError::MissingConfig);
 }
 
-/// Obtains the path to the directory in which the Rust binary is kept.
+/// Returns a pointer to the path to the directory in which the Rust binary is kept.
+///
+/// * `py_src_path` - The path provided by the Python interface.
 fn get_src_path(py_src_path: Option<&PyString>) -> Result<&Path, AntisepticError> {
     if py_src_path.is_none() {
         println!("{}", "Faulty src path provided.".red());
@@ -113,32 +128,41 @@ fn get_src_path(py_src_path: Option<&PyString>) -> Result<&Path, AntisepticError
     Ok(Path::new(src_path_str.unwrap()))
 }
 
+/// Conducts a spell-check.
+///
+/// * `files` - The list of globs indicating which files to spell-check.
+/// * `py_src_path` - The path provided by the Python interface.
 fn antiseptic_main(
     files: Option<&PyList>,
     py_src_path: Option<&PyString>,
 ) -> Result<u64, AntisepticError> {
+    // Gets the paths to the Rust binary, and the current working directory.
     let src_path = get_src_path(py_src_path)?;
-
     let cwd = match env::current_dir() {
         Ok(result) => result,
         Err(_e) => return Err(AntisepticError::UnableToFindCWD),
     };
+
+    // Obtains a map from configuration keys to values.
     let config_option = find_config_in_dir(&cwd);
     if config_option.is_err() {
         println!("{}", "No antiseptic configuration found.".red());
         return Ok(config_option.err().unwrap() as u64);
     }
-
     let config = config_option.unwrap();
 
+    // Obtains all files to be spell-checked.
     let mut all_files: BTreeSet<PathBuf> = BTreeSet::new();
     find_files::collect_all_files(files, all_files.borrow_mut(), &config)?;
 
+    // Obtains all words considered correct spellings.
     let words_allowed: HashSet<String> = spellcheck::get_word_set(src_path)?;
+
+    // Obtains all characters that are recognized as constituting a word, rather than punctuation.
     let characters_allowed: HashSet<char> = spellcheck::get_word_characters(src_path)?;
 
+    // Iterates over every file (only stopping if an unexpected error occurs.)
     let mut found_mistake = false;
-
     for file in &all_files {
         match spellcheck::read_file(file, &characters_allowed, &words_allowed) {
             Ok(_result) => (),
@@ -155,6 +179,7 @@ fn antiseptic_main(
         }
     }
 
+    // Indicates that a spelling mistake was found, if necessary.
     if found_mistake {
         return Err(AntisepticError::SpellingMistakeFound);
     }
@@ -163,6 +188,9 @@ fn antiseptic_main(
 }
 
 /// The main entry point for Antiseptic.
+///
+/// * `files` - The list of globs indicating which files to spell-check.
+/// * `py_src_path` - The path provided by the Python interface.
 #[pyfunction]
 fn antiseptic(files: Option<&PyList>, py_src_path: Option<&PyString>) -> PyResult<u64> {
     return match antiseptic_main(files, py_src_path) {
@@ -172,6 +200,9 @@ fn antiseptic(files: Option<&PyList>, py_src_path: Option<&PyString>) -> PyResul
 }
 
 /// A Python module implemented in Rust.
+///
+/// * `_py` - The Python instance itself.
+/// * `m` - The Python module exposed from the Rust binary.
 #[pymodule]
 fn _lowlevel(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(antiseptic, m)?)?;
