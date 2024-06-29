@@ -128,7 +128,7 @@ fn process_token(
         let length_so_far = word.len();
         let is_uppercase = character.is_uppercase();
 
-        if length_so_far == 2 {
+        if length_so_far == 1 {
             let mut chars = word.chars();
             let first = chars.next().unwrap();
 
@@ -142,7 +142,7 @@ fn process_token(
             } else {
                 uppercase_triggers_new_word = true;
             }
-        } else if length_so_far > 2 {
+        } else if length_so_far > 1 {
             if uppercase_triggers_new_word && is_uppercase {
                 found_mistake =
                     found_mistake | word_is_incorrect(read_position, word.borrow(), words_allowed);
