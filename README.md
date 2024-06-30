@@ -1,5 +1,13 @@
 # Antiseptic
 
+<p align="center">
+  <picture align="center">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/clockback/antiseptic/main/python/antiseptic/assets/logo/logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/clockback/antiseptic/main/python/antiseptic/assets/logo/logo-light.svg">
+    <img alt="Shows the Antiseptic logo." src="https://raw.githubusercontent.com/clockback/antiseptic/main/python/antiseptic/assets/logo/logo-light.svg">
+  </picture>
+</p>
+
 The Rust-built Python package for spell-checking, purposed for continuous integration.
 
 ## Get started
