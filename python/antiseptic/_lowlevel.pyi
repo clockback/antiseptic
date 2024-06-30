@@ -1,6 +1,4 @@
-from typing import Literal
-
-def antiseptic(files: list[str], src: str) -> Literal[0, 1]:
+def antiseptic(files: list[str], src: str) -> int:
     """Performs a spell-check over the provided files.
 
     Args:
