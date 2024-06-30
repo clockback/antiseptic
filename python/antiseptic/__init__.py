@@ -15,7 +15,9 @@ def main() -> int:
     Returns:
         The return code of the Rust binary.
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Antiseptic: Quickly spell-check your repository."
+    )
     parser.add_argument(
         "files", nargs="*", help="List of files or directories to check.", default=["."]
     )
