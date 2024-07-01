@@ -1,3 +1,4 @@
+mod config;
 mod errors;
 mod find_files;
 mod spellcheck;
@@ -18,6 +19,9 @@ use pyo3::prelude::*;
 use pyo3::types::PyList;
 use pyo3::types::PyString;
 use toml::Table;
+
+use crate::config::config::load_config;
+use crate::config::config::Configuration;
 
 /// Parses the provided file as a TOML table.
 ///
@@ -144,16 +148,22 @@ fn antiseptic_main(
     };
 
     // Obtains a map from configuration keys to values.
-    let config_option = find_config_in_dir(&cwd);
-    if config_option.is_err() {
-        println!("{}", "No antiseptic configuration found.".red());
-        return Ok(config_option.err().unwrap() as u64);
-    }
-    let config = config_option.unwrap();
+    let config_toml = match find_config_in_dir(&cwd) {
+        Ok(result) => result,
+        Err(error) => {
+            println!("{}", "No antiseptic configuration found.".red());
+            return Ok(error as u64);
+        }
+    };
+
+    let mut configuration = Configuration {
+        ..Default::default()
+    };
+    load_config(&config_toml, configuration.borrow_mut());
 
     // Obtains all files to be spell-checked.
     let mut all_files: BTreeSet<PathBuf> = BTreeSet::new();
-    find_files::collect_all_files(files, all_files.borrow_mut(), &config)?;
+    find_files::collect_all_files(files, all_files.borrow_mut(), &configuration)?;
 
     // Obtains all words considered correct spellings.
     let words_allowed: HashSet<String> = spellcheck::get_word_set(src_path)?;

@@ -5,37 +5,12 @@ use std::result::Result;
 use colored::Colorize;
 use globset::Glob;
 use pyo3::types::PyList;
-use toml::value::Array;
-use toml::Table;
 use walkdir::DirEntry;
 use walkdir::Error;
 use walkdir::WalkDir;
 
+use crate::config::config::Configuration;
 use crate::errors::all_errors::AntisepticError;
-
-/// Obtains an array of all globs which should be excluded from antiseptic.
-///
-/// * `config` - The TOML table containing Antiseptic's configuration.
-fn get_exclude_array(config: &Table) -> Result<Array, AntisepticError> {
-    let mut exclude = Array::new();
-
-    let exclude_config_option = config.get("exclude");
-    if exclude_config_option.is_some() {
-        let exclude_config_array_option = exclude_config_option.unwrap().as_array();
-        if exclude_config_array_option.is_none() {
-            println!(
-                "{}",
-                "Configuration setting \"config\" should be array.".red()
-            );
-            return Err(AntisepticError::IncorrectConfigTOMLType);
-        }
-        for exclude_value in exclude_config_array_option.unwrap() {
-            exclude.push(exclude_value.to_owned());
-        }
-    }
-
-    Ok(exclude)
-}
 
 /// Returns whether or not an entry (file/directory) should be spell-checked.
 ///
@@ -48,7 +23,7 @@ fn get_exclude_array(config: &Table) -> Result<Array, AntisepticError> {
 fn consider_collecting_file(
     entry_result: Result<DirEntry, Error>,
     all_files: &mut BTreeSet<PathBuf>,
-    config: &Table,
+    configuration: &Configuration,
 ) -> Result<bool, AntisepticError> {
     // Extracts the entry from the provided result value.
     if entry_result.is_err() {
@@ -59,14 +34,9 @@ fn consider_collecting_file(
     let mut excluded = false;
 
     // Iterates over every glob that should be excluded from the check.
-    for exclude_value in get_exclude_array(config)? {
-        if !exclude_value.is_str() {
-            println!("{}{}", "Bad exclude value: ".red(), exclude_value);
-            return Err(AntisepticError::IncorrectConfigTOMLType);
-        }
-
+    for exclude_value in configuration.exclude.iter() {
         // Converts the glob string to a glob value.
-        let exclude_str = exclude_value.as_str().unwrap();
+        let exclude_str = exclude_value.as_str();
         let glob = Glob::new(exclude_str);
         if glob.is_err() {
             println!("{}{}", "Invalid glob: ".red(), exclude_str.red())
@@ -105,7 +75,7 @@ fn consider_collecting_file(
 pub fn collect_all_files(
     requested_files: Option<&PyList>,
     all_files: &mut BTreeSet<PathBuf>,
-    config: &Table,
+    config: &Configuration,
 ) -> Result<(), AntisepticError> {
     // Iterates over every user provided glob.
     for file in requested_files.unwrap() {
