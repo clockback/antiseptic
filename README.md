@@ -39,7 +39,7 @@ myfile.txt:15:32: AS001 spelling mistake `helol`
 
 Antiseptic is configured in `pyproject.toml`, `antiseptic.toml`, or `.antiseptic.toml`.
 
-At present there is only a single configuration setting, `exclude` which indicates directories and files which should not be included in the spell-check:
+There is a setting `exclude` which indicates directories and files which should not be included in the spell-check:
 
 ```toml
 exclude = [
@@ -47,5 +47,14 @@ exclude = [
     ".mypy_cache",
     ".ruff_cache",
     ".venv",
+]
+```
+
+There is also a setting `allowed-words` which defines words that Antiseptic will not flag:
+
+```toml
+allowed-words = [
+    "glubbage",
+    "glimp"
 ]
 ```
