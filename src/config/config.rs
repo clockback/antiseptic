@@ -38,7 +38,14 @@ fn get_exclude_array(
             return Err(AntisepticError::IncorrectConfigTOMLType);
         }
         for exclude_value in exclude_config_array_option.unwrap() {
-            populate.push(exclude_value.to_string());
+            if !exclude_value.is_str() {
+                println!(
+                    "{}",
+                    "Configuration setting \"exclude\" should contain only strings.".red()
+                );
+                return Err(AntisepticError::IncorrectConfigTOMLType);
+            }
+            populate.push(exclude_value.as_str().unwrap().to_string());
         }
     }
 
