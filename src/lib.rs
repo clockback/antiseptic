@@ -159,7 +159,7 @@ fn antiseptic_main(
     let mut configuration = Configuration {
         ..Default::default()
     };
-    load_config(&config_toml, configuration.borrow_mut());
+    load_config(&config_toml, configuration.borrow_mut())?;
 
     // Obtains all files to be spell-checked.
     let mut all_files: BTreeSet<PathBuf> = BTreeSet::new();
