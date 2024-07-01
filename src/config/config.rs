@@ -33,7 +33,7 @@ fn get_exclude_array(
         if exclude_config_array_option.is_none() {
             println!(
                 "{}",
-                "Configuration setting \"config\" should be array.".red()
+                "Configuration setting \"exclude\" should be array.".red()
             );
             return Err(AntisepticError::IncorrectConfigTOMLType);
         }
