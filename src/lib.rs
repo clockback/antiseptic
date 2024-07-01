@@ -166,7 +166,10 @@ fn antiseptic_main(
     find_files::collect_all_files(files, all_files.borrow_mut(), &configuration)?;
 
     // Obtains all words considered correct spellings.
-    let words_allowed: HashSet<String> = spellcheck::get_word_set(src_path)?;
+    let mut words_allowed: HashSet<String> = spellcheck::get_word_set(src_path)?;
+    for word in configuration.allowed_words {
+        words_allowed.insert(word);
+    }
 
     // Obtains all characters that are recognized as constituting a word, rather than punctuation.
     let characters_allowed: HashSet<char> = spellcheck::get_word_characters(src_path)?;
