@@ -46,6 +46,10 @@ fn get_exclude_array(
 }
 
 /// Loads all the configuration TOML into a struct for later use.
-pub fn load_config(config_toml: &Table, configuration: &mut Configuration) {
-    get_exclude_array(config_toml, configuration.exclude.borrow_mut());
+pub fn load_config(
+    config_toml: &Table,
+    configuration: &mut Configuration,
+) -> Result<(), AntisepticError> {
+    get_exclude_array(config_toml, configuration.exclude.borrow_mut())?;
+    Ok(())
 }
