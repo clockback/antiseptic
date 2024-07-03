@@ -277,7 +277,7 @@ pub fn read_file(
         };
 
         // If the character can belong to a word, adds it to a token.
-        if characters_allowed.contains(&character) {
+        if character.is_alphabetic() || characters_allowed.contains(&character) {
             token.push(character);
         }
         // If the character is whitespace/punctuation, and a token has already started to be formed,
