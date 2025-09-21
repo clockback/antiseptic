@@ -7,16 +7,18 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Python Setup Rye
-        uses: eifinger/setup-rye@v3.0.3
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.8"
       - name: Install Bombsite
-        run: rye sync
+        run: uv sync
       - name: Run Ruff linter
-        run: rye run ruff check
+        run: uv run ruff check
       - name: Check formatting with Ruff code formatter
-        run: rye run ruff format --check
+        run: uv run ruff format --check
       - name: Run Mypy
-        run: rye run mypy python/
+        run: uv run mypy python/
 
   run-rust-unit-tests:
     runs-on: ubuntu-latest
