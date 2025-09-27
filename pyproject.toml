@@ -44,6 +44,6 @@ exclude = [
 
 [dependency-groups]
 dev = [
-    "mypy>=1.10.0",
     "ruff>=0.4.7",
+    "ty>=0.0.1a21",
 ]
