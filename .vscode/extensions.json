@@ -7,7 +7,6 @@
         "charliermarsh.ruff",
         "ms-python.debugpy",
         "ms-python.python",
-        "ms-python.mypy-type-checker",
 
         // TOML
         "tamasfe.even-better-toml",
